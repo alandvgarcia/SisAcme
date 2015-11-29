@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+ <ui:composition template="WEB-INF/templates/Layout.xhtml"
+xmlns="http://www.w3.org/1999/xhtml"
+xmlns:h="http://xmlns.jcp.org/jsf/html"
+xmlns:f="http://xmlns.jcp.org/jsf/core"
+xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+xmlns:p="http://primefaces.org/ui">	
+	<ui:define name="corpo">
+	
+	<h:form id="frm">
+		<p:messages id="msgs" />	
+		 
+	
+		 <f:metadata>
+		  <f:viewAction action="#{cadastrarHistorico.getHistoricos}"/>	 
+		 </f:metadata>
+	 
+	    <h1>Gestão de Histórico</h1> 
+	        
+        <p:toolbar id="toolbar">
+          <f:facet name="left">
+            <p:commandButton value="Novo" icon="ui-icon-document" title="Novo"
+             process="@this" 
+             update="historico-dialog"
+             actionListener="#{cadastrarHistorico.clearHistorico}"
+             oncomplete="PF('edicaoHistoricoDialog').show()">
+             <p:resetInput target="historico-dialog"/>
+             </p:commandButton>
+            <span class="ui-separator">
+            	<span class="ui-icon ui-icon-grip-dotted-vertical"/>
+            </span>
+            <p:commandButton icon="ui-icon-pencil" title="Editar"
+            disabled="#{cadastrarHistorico.historicoSelecionado==null}"
+            process="@this" 
+            update=":frmAlteracao:historico-dialog-alteracao"
+            actionListener="#{cadastrarHistorico.getHistoricoParaAlterar}"
+            oncomplete="PF('alteracaoHistoricoDialog').show()"/>
+            
+            <p:commandButton icon="ui-icon-trash" title="Excluir"
+            disabled="#{cadastrarHistorico.historicoSelecionado==null}"
+            process="@this"
+            actionListener="#{cadastrarHistorico.getHistoricoParaAlterar}"
+            oncomplete="PF('caixaDeDecisaoDeExclusao').show()"/>
+           
+          </f:facet>
+          <f:facet name="right">
+          </f:facet>
+        </p:toolbar>
+        
+          
+        <p:dataTable value="#{cadastrarHistorico.historico}" var="historico"
+        emptyMessage="Nenhum historico cadastrado." rows="5" paginator="true" paginatorPosition="bottom" 
+        id="tabelaHistorico"  selection="#{cadastrarHistorico.historicoSelecionado}" selectionMode="single"
+        rowKey="#{historico.id}" filteredValue="#{cadastrarHistorico.historicoFiltrado}">
+        
+        
+        <p:ajax event="rowSelect" update=":frm:toolbar"/>
+        <p:ajax event="rowUnselect" update=":frm:toolbar"/>
+                
+        <p:column headerText="Código" width="120" filterBy="#{historico.id}"  sortBy="#{historico.id}" filterMatchMode="contains">
+           <h:outputText value="#{historico.id}"/>
+        </p:column>
+        <p:column headerText="Tipo" width="70" sortBy="#{historico.tipo}">
+        	<h:outputText value="#{historico.tipo}"/>
+        </p:column>   
+        <p:column headerText="Descrição">
+        	<h:outputText value="#{historico.descricao}"/>
+        </p:column>
+        </p:dataTable>
+        
+        
+        <p:dialog header="Novo Histórico"  widgetVar="edicaoHistoricoDialog" id="historico-dialog"
+	 resizable="false" modal="true" closeOnEscape="true">
+	     <p:messages id="messages-dialog" autoUpdate="true" />	
+	    <h:panelGrid columns="2" cellpadding="10" id="painel-dialog">
+          <p:outputLabel value="Descrição: " for="txtDesc"/>
+          <p:inputText value="#{cadastrarHistorico.objHistorico.descricao}" id="txtDesc" size="60" maxlength="80"/>
+          <p:outputLabel value="Tipo: " for="tipo"/>
+            <p:selectOneRadio id="tipo" value="#{cadastrarHistorico.objHistorico.tipo}">
+	            <f:selectItem itemLabel="Débito" itemValue="D" />
+	            <f:selectItem itemLabel="Crédito" itemValue="C" />
+        	</p:selectOneRadio>
+         <h:panelGrid columns="4" cellpadding="10">
+        <p:commandButton value="Salvar"   actionListener="#{cadastrarHistorico.salvarHistorico}"
+        oncomplete="if 	(!args.validationFailed) PF('edicaoHistoricoDialog').hide()" update="messages-dialog
+        painel-dialog"/>
+         </h:panelGrid>
+        </h:panelGrid>
+	 </p:dialog>   
+</h:form>
+
+
+<h:form id="frmAlteracao">
+
+ <p:dialog header="Alterar Histórico"  widgetVar="alteracaoHistoricoDialog" id="historico-dialog-alteracao"
+	 resizable="false" modal="true" closeOnEscape="true">
+	     
+	     <p:messages id="messages-dialog" autoUpdate="true" />	
+	 
+	    <h:panelGrid columns="2" cellpadding="10" id="painel-dialog">
+          <p:outputLabel value="Descrição: " for="txtDesc"/>
+          <p:inputText value="#{cadastrarHistorico.objHistorico.descricao}" id="txtDesc" size="60" maxlength="80"/>
+          <p:outputLabel value="Tipo: " for="tipo"/>
+            <p:selectOneRadio id="tipo" value="#{cadastrarHistorico.objHistorico.tipo}">
+            <f:selectItem itemLabel="Débito" itemValue="D" />
+            <f:selectItem itemLabel="Crédito" itemValue="C" />
+        </p:selectOneRadio>
+         <h:panelGrid columns="4" cellpadding="10">
+        <p:commandButton value="Salvar"   actionListener="#{cadastrarHistorico.alterarHistorico}"
+        oncomplete="if 	(!args.validationFailed) PF('alteracaoHistoricoDialog').hide()" update="messages-dialog
+        painel-dialog"/>
+         </h:panelGrid>
+        </h:panelGrid>
+	 
+	 </p:dialog>
+</h:form>
+
+
+<h:form id="frmExlusao">
+
+	<p:dialog widgetVar="caixaDeDecisaoDeExclusao" id="excluir-dialog" resizable="false"
+	 modal="true" closeOnEscape="true"
+	 closable="false">
+	 <p:outputLabel value="Deseja remover historico selecionado ?"/>
+	 <h:panelGrid columns="2" cellpadding="30">
+	  <p:commandButton value="Sim"  actionListener="#{cadastrarHistorico.removerHistorico}" oncomplete="if (!args.validationFailed) PF('caixaDeDecisaoDeExclusao').hide()"/>
+	  <p:commandButton value="Não" oncomplete="PF('caixaDeDecisaoDeExclusao').hide()"/>
+	 </h:panelGrid>
+	 </p:dialog>
+ 
+</h:form>
+
+	</ui:define>
+</ui:composition>
